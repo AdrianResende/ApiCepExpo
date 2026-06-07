@@ -16,16 +16,20 @@ export default function App() {
   const [cep, setCep] = useState('');
   const [loading, setLoading] = useState(false);
   const [endereco, setEndereco] = useState(null);
+  const [mensagemErro, setMensagemErro] = useState('');
 
   const buscarEndereco = async () => {
     const cepLimpo = cep.replace(/\D/g, '');
 
     if (cepLimpo.length !== 8) {
+      setMensagemErro('CEP invalido. Digite exatamente 8 numeros.');
+      setEndereco(null);
       Alert.alert('CEP invalido', 'Digite um CEP com 8 numeros.');
       return;
     }
 
     try {
+      setMensagemErro('');
       setLoading(true);
       setEndereco(null);
 
@@ -38,6 +42,7 @@ export default function App() {
       const dados = await resposta.json();
 
       if (dados.erro) {
+        setMensagemErro('CEP nao encontrado. Tente outro CEP valido.');
         Alert.alert('Nao encontrado', 'Nenhum endereco encontrado para esse CEP.');
         return;
       }
@@ -61,12 +66,23 @@ export default function App() {
           <Text style={styles.label}>Digite o CEP:</Text>
           <TextInput
             value={cep}
-            onChangeText={setCep}
+            onChangeText={(texto) => {
+              setCep(texto);
+              if (mensagemErro) {
+                setMensagemErro('');
+              }
+            }}
             placeholder="Ex.: 01001000"
             keyboardType="numeric"
             maxLength={9}
             style={styles.input}
           />
+
+          {!!mensagemErro && (
+            <View style={styles.erroBox}>
+              <Text style={styles.erroTexto}>{mensagemErro}</Text>
+            </View>
+          )}
 
           <TouchableOpacity style={styles.botao} onPress={buscarEndereco}>
             <Text style={styles.botaoTexto}>Buscar endereco</Text>
@@ -136,6 +152,20 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: '#f9fbff',
     marginBottom: 12,
+  },
+  erroBox: {
+    backgroundColor: '#fdeaea',
+    borderWidth: 1,
+    borderColor: '#f5b6b6',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginBottom: 12,
+  },
+  erroTexto: {
+    color: '#9e1f1f',
+    fontSize: 13,
+    fontWeight: '600',
   },
   botao: {
     backgroundColor: '#0b5cff',
